@@ -1,0 +1,15 @@
+logging:
+  level: DEBUG
+monitoring:
+  enabled: false
+scraping:
+  enabled: false
+  parser: lxml
+  shelve_file: listings.data
+  sites:
+  - inberlinwohnen
+  timeout: 10
+  write_sample: true
+telegram:
+  enabled: false
+  timeout: 10
