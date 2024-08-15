@@ -9,7 +9,7 @@ if __name__ == "__main__":
     for site in wohnbot.params['scraping']['sites']:
         module = wohnbot.mods[site]
         if wohnbot.params['scraping']['enabled']:
-            scraped = module.scrape(wohnbot.params['scraping']['timeout'])
+            scraped = module.scrape()
             if wohnbot.params['scraping']['write_sample']:
                 wohnbot.sample.write(site, scraped)
         else:

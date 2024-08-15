@@ -4,11 +4,12 @@ monitoring:
   enabled: false
 scraping:
   enabled: false
-  parser: lxml
+  parser: html.parser
   shelve_file: listings.data
   sites:
   - inberlinwohnen
   - wbm
+  - degewo
   timeout: 10
   write_sample: false
 telegram:

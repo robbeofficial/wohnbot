@@ -12,3 +12,4 @@ logger = logging.getLogger(__name__)
 db = shelve.open(params['scraping']['shelve_file'])
 mods = {site: dynamic_import(site) for site in params['scraping']['sites']}
 
+logger.debug('init')
