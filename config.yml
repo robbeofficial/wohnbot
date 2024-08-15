@@ -8,8 +8,9 @@ scraping:
   shelve_file: listings.data
   sites:
   - inberlinwohnen
+  - wbm
   timeout: 10
-  write_sample: true
+  write_sample: false
 telegram:
   enabled: false
   timeout: 10

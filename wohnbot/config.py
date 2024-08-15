@@ -1,6 +1,6 @@
 import logging
 import yaml
-import os
+
 from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
