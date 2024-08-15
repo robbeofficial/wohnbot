@@ -10,8 +10,10 @@ scraping:
   - inberlinwohnen
   - wbm
   - degewo
+  - gesobau
   timeout: 10
-  write_sample: false
+  write_sample: false  
+  max_pages: 20
 telegram:
   enabled: false
   timeout: 10

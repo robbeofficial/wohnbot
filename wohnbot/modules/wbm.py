@@ -6,6 +6,7 @@ from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 
+import wohnbot
 logger = logging.getLogger(__name__)
 
 
@@ -13,13 +14,13 @@ def found(response):
     return response.url != 'https://www.wbm.de/wohnungen-berlin/angebote/nicht-mehr-verfuegbar/'
 
 
-def scrape(timeout=None):
-    req = requests.get('https://www.wbm.de/wohnungen-berlin/angebote/', timeout=timeout)
+def scrape():
+    req = requests.get('https://www.wbm.de/wohnungen-berlin/angebote/', timeout=wohnbot.params['scraping']['timeout'])
     return req.text
 
 
-def parse(html_input, parser='html.parser'):
-    soup = BeautifulSoup(html_input, parser)
+def parse(html_input):
+    soup = BeautifulSoup(html_input, wohnbot.params['scraping']['parser'])
 
     base_url = 'https://www.wbm.de/'
 

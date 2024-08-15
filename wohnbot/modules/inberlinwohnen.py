@@ -5,19 +5,21 @@ import logging
 import requests
 from bs4 import BeautifulSoup
 
+import wohnbot
+
 logger = logging.getLogger(__name__)
 
 def found(response):
     return response.status_code == 200
 
 
-def scrape(timeout=None):
-    req = requests.get('https://inberlinwohnen.de/wohnungsfinder/', timeout=timeout)
+def scrape():
+    req = requests.get('https://inberlinwohnen.de/wohnungsfinder/', timeout=wohnbot.params['scraping']['timeout'])
     return req.text
 
 
-def parse(html_input, parser='html.parser'):
-    soup = BeautifulSoup(html_input, parser)
+def parse(html_input):
+    soup = BeautifulSoup(html_input, wohnbot.params['scraping']['parser'])
     base_url = 'https://inberlinwohnen.de/'
 
     items = soup.find_all('li', class_='tb-merkflat')

@@ -18,6 +18,7 @@ def get_default():
             parser = 'lxml',
             write_sample = True,
             shelve_file = 'listings.data',
+            max_pages = 20,
         ),
         telegram=dict(
             enabled=True,
