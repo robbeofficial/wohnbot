@@ -17,7 +17,12 @@ TELEGRAM_BOT_TOKEN=...
 - adjust `config.yml` to your needs
 
 # Usage
+Run scrape job
 ```bash
-source venv/bin/activate
-python python -m wohnbot.wohnbot
+python -m wohnbot.wohnbot
+```
+
+Dump cached listings from shelve file to JSON
+```bash
+python -m wohnbot.dump > dump.json
 ```
