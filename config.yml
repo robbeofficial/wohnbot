@@ -11,6 +11,7 @@ scraping:
   - wbm
   - degewo
   - gesobau
+  - gewobag
   timeout: 10
   write_sample: false  
   max_pages: 20
