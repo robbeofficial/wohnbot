@@ -24,7 +24,7 @@ def parse(html_input):
 
     items = soup.find_all('li', class_='tb-merkflat')
 
-    logger.info("Will parse {} flats".format(len(items)))
+    logger.debug("Will parse {} flats".format(len(items)))
 
     for item in items:
 

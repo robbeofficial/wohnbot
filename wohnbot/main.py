@@ -3,7 +3,7 @@ import logging
 import wohnbot
 import wohnbot.sample
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("wohnbot")
 
 if __name__ == "__main__":
     for site in wohnbot.params['scraping']['sites']:

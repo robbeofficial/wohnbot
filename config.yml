@@ -12,6 +12,7 @@ scraping:
   - degewo
   - gesobau
   - gewobag
+  - howoge
   timeout: 10
   write_sample: false  
   max_pages: 20

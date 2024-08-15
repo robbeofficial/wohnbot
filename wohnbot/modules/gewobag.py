@@ -105,7 +105,7 @@ def parse(html_input):
 
     item_container = soup.find('div', class_='filtered-mietangebote')
     items = item_container.find_all('div', class_='angebot-content')
-    logger.info(f"Will parse {len(items)} flats")
+    logger.debug(f"Will parse {len(items)} flats")
     for item in items:
         props = {'found': str(datetime.now())}
 

@@ -21,7 +21,7 @@ def found(response):
 def parse(scraped):
     base_url = 'https://immosuche.degewo.de/'
 
-    logger.info("Found {} flats".format(len(scraped['immos'])))
+    logger.debug("Found {} flats".format(len(scraped['immos'])))
 
     for listing in scraped['immos']:
         yield {

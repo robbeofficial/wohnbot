@@ -15,26 +15,27 @@ def write(site, scraped):
         else:
             f.write(scraped)
 
-def load_html(site):
-    try:
-        with open(glob.glob(f"samples/{site}-*.html")[-1], "r") as f:
-            return f.read()
-    except:
-        return None
+def latest_sample_path(site, ext):
+    files = glob.glob(f"samples/{site}-*.{ext}")
+    if files:
+        return sorted(files)[-1]
+    
+def load_html(path):
+    logger.info(f"Loading sample from {path}")
+    return open(path, "r").read()
 
-def load_json(site):
-    try:
-        with open(glob.glob(f"samples/{site}-*.json")[-1], "r") as f:
-            return json.load(f)
-    except:
-        return None
+def load_json(path):
+    logger.info(f"Loading sample from {path}")
+    return json.load(open(path, "r"))
 
-def load(site):
-    logger.info("Loading latest sample file for {}".format(site))
-    sample = load_html(site)
-    if not sample:
-        sample = load_json(site)
-    if not sample:
-        logger.error("No HTML or JSON sample found! Set scraping.enabled and scraping.write_sample in config.yml to true to record a new sample.")
-        exit(1)
-    return sample
+def load(site):    
+    path = latest_sample_path(site, 'html')
+    if path:
+        return load_html(path)
+    
+    path = latest_sample_path(site, 'json')
+    if path:
+        return load_json(path)
+    
+    logger.error("No HTML or JSON sample found! Set scraping.enabled and scraping.write_sample in config.yml to true to record a new sample.")
+    exit(1)

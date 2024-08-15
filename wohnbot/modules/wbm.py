@@ -26,7 +26,7 @@ def parse(html_input):
 
     items = soup.find_all('div', class_='openimmo-search-list-item')
 
-    logger.info("Will parse {} flats".format(len(items)))
+    logger.debug("Will parse {} flats".format(len(items)))
 
     for item in items:
 

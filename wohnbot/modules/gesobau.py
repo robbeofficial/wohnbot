@@ -23,7 +23,7 @@ def parse(unpaged):
     for page, text in enumerate(pages, 1):
         soup = BeautifulSoup(text, wohnbot.params['scraping']['parser'])
         items = soup.find_all('div', class_="results-entry")
-        logger.info(f"Found {len(items)} flats on page {page}")
+        logger.debug(f"Found {len(items)} flats on page {page}")
         for item in items:
             props = {'found': str(datetime.now())}
 
