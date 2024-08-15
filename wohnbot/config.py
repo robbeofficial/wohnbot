@@ -15,7 +15,7 @@ def get_default():
             #sites = ['degewo', 'wbm', 'howoge', 'stadtundland', 'gewobag', 'gesobau', 'inberlinwohnen'],
             sites = ['inberlinwohnen'],
             timeout = 10,
-            parser = 'lxml',
+            parser = 'html.parser',
             write_sample = True,
             shelve_file = 'listings.data',
             max_pages = 20,
@@ -24,8 +24,11 @@ def get_default():
             enabled=True,
             timeout=10,
         ),
-        monitoring=dict(
-            enabled=True
+        influx=dict(
+            enabled=True,
+            host='localhost',
+            port=8086,
+            database='wbmpoll',
         ),
     )
 

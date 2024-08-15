@@ -1,7 +1,10 @@
 logging:
-  level: DEBUG
-monitoring:
-  enabled: false
+  level: INFO
+influx:
+  enabled: true
+  host: localhost
+  port: 8086
+  database: wohnbot
 scraping:
   enabled: false
   parser: html.parser
