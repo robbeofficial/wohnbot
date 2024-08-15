@@ -13,6 +13,7 @@ scraping:
   - gesobau
   - gewobag
   - howoge
+  - stadtundland
   timeout: 10
   write_sample: false  
   max_pages: 20
