@@ -12,8 +12,7 @@ def get_default():
         ),
         scraping=dict(
             enabled = False,
-            #sites = ['degewo', 'wbm', 'howoge', 'stadtundland', 'gewobag', 'gesobau', 'inberlinwohnen'],
-            sites = ['inberlinwohnen'],
+            sites = ['degewo', 'wbm', 'howoge', 'stadtundland', 'gewobag', 'gesobau', 'inberlinwohnen'],
             timeout = 10,
             parser = 'html.parser',
             write_sample = True,
@@ -29,6 +28,7 @@ def get_default():
             host='localhost',
             port=8086,
             database='wbmpoll',
+            retention_period='30d',
         ),
     )
 

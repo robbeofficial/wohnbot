@@ -29,4 +29,3 @@ python -m wohnbot.dump > dump.json
 
 # TODOs
 - add rate limiter
-- add influxdb retention policy
