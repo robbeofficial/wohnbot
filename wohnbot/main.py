@@ -3,8 +3,9 @@ import time
 import traceback
 
 import wohnbot
-import wohnbot.sample
+from wohnbot import sample
 from wohnbot import influx
+from wohnbot import telegram
 
 logger = logging.getLogger("wohnbot")
 
@@ -39,9 +40,9 @@ def process_site(site):
         influx.add('metrics', {'request_duration': scrape_duration_ms}, {'site': site})
         
         if wohnbot.params['scraping']['write_sample']:
-            wohnbot.sample.write(site, scraped)
+            sample.write(site, scraped)
     else:
-        scraped = wohnbot.sample.load(site)
+        scraped = sample.load(site)
     
     processing_start = time.time()
     
@@ -60,7 +61,7 @@ def process_site(site):
     influx.add('metrics', {'processing_time': processing_duration_ms}, {'site': site})
 
     if wohnbot.params['telegram']['enabled'] and len(flats_new) > 0:
-        wohnbot.telegram.notify(flats_new, site, wohnbot.params['telegram']['timeout'])
+        telegram.notify(flats_new, site, wohnbot.params['telegram']['timeout'])
 
 if __name__ == "__main__":
     for site in wohnbot.params['scraping']['sites']:
