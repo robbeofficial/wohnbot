@@ -60,8 +60,8 @@ def process_site(site):
     processing_duration_ms = int((time.time() - processing_start) * 1000)
     influx.add('metrics', {'processing_time': processing_duration_ms}, {'site': site})
 
-    if wohnbot.params['telegram']['enabled'] and len(flats_new) > 0:
-        telegram.notify(flats_new, site, wohnbot.params['telegram']['timeout'])
+    if len(flats_new) > 0:
+        telegram.notify(flats_new, site)
 
 if __name__ == "__main__":
     for site in wohnbot.params['scraping']['sites']:
