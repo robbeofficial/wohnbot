@@ -45,6 +45,10 @@ def scrape():
         headers=headers,
         data=data,
     )
+    
+    if 'crawler' in response.url:
+        logger.info(f"Won't process! Redirected to {response.url}")
+        return {'immoobjects':[]}
 
     return response.json()
 
