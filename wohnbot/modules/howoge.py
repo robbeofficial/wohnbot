@@ -6,6 +6,7 @@ import requests
 
 import wohnbot
 logger = logging.getLogger(__name__)
+import wohnbot.exceptions as exceptions
 
 
 def found(response):
@@ -47,8 +48,7 @@ def scrape():
     )
     
     if 'crawler' in response.url:
-        logger.info(f"Won't process! Redirected to {response.url}")
-        return {'immoobjects':[]}
+        raise exceptions.ScrapingError(f"Redirect to dummy data detected: {response.url}")
 
     return response.json()
 
