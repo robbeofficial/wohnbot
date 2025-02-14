@@ -1,11 +1,14 @@
 import logging
 import time
 import traceback
+import os
+import requests
 
 import wohnbot
 from wohnbot import sample
 from wohnbot import influx
 from wohnbot import telegram
+from wohnbot.exceptions import ScrapingError
 
 logger = logging.getLogger("wohnbot")
 
@@ -35,10 +38,22 @@ def process_site(site):
 
     if wohnbot.params['scraping']['enabled']:
         scrape_start = time.time()
-        scraped = module.scrape()
-        scrape_duration_ms = int((time.time() - scrape_start) * 1000)
-        influx.add('metrics', {'request_duration': scrape_duration_ms}, {'site': site})
-        
+        scraped = False
+        for attempt in range(1,4):
+            try:
+                scraped = module.scrape()
+                scrape_duration_ms = int((time.time() - scrape_start) * 1000)
+                influx.add('metrics', {'request_duration': scrape_duration_ms}, {'site': site})
+                break
+            except ScrapingError as e:
+                if wohnbot.params['scraping'].get('wgproxy_endpoint'):
+                    logger.debug(f"Scraping attemt {attempt} failed, recommending wgproxy to change IP")
+                    response = requests.get(wohnbot.params['scraping']['wgproxy_endpoint'] + '/renew_ip').json()
+                    logger.debug("new IP: " + response['ip'])
+                else:
+                    break
+        if not scraped:
+            raise ScrapingError(f"Failed to scrape {site} after {attempt} attempt(s)")
         if wohnbot.params['scraping']['write_sample']:
             sample.write(site, scraped)
     else:
@@ -64,6 +79,8 @@ def process_site(site):
         telegram.notify(flats_new, site)
 
 if __name__ == "__main__":
+    if wohnbot.params['scraping'].get('proxy'):
+        os.environ["ALL_PROXY"] = wohnbot.params['scraping']['proxy']
     for site in wohnbot.params['scraping']['sites']:
         try:
             process_site(site)

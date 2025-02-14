@@ -6,7 +6,7 @@ import requests
 
 import wohnbot
 logger = logging.getLogger(__name__)
-import wohnbot.exceptions as exceptions
+from wohnbot.exceptions import ScrapingError
 
 
 def found(response):
@@ -48,7 +48,7 @@ def scrape():
     )
     
     if 'crawler' in response.url:
-        raise exceptions.ScrapingError(f"Redirect to dummy data detected: {response.url}")
+        raise ScrapingError(f"Redirect to dummy data detected: {response.url}")
 
     return response.json()
 

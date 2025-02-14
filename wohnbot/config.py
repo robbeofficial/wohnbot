@@ -8,27 +8,29 @@ logger = logging.getLogger(__name__)
 def get_default():
     return dict(
         logging=dict(
-            level='DEBUG'
+            level='INFO',
         ),
         scraping=dict(
             enabled = False,
+            proxy = None,
+            wgproxy_endpoint = None,
             sites = ['degewo', 'wbm', 'howoge', 'stadtundland', 'gewobag', 'gesobau', 'inberlinwohnen'],
             timeout = 10,
             parser = 'html.parser',
-            write_sample = True,
+            write_sample = False,
             shelve_file = 'listings.data',
             max_pages = 20,
         ),
         telegram=dict(
-            enabled=True,
-            timeout=10,
+            enabled = False,
+            timeout = 10,
         ),
         influx=dict(
-            enabled=True,
-            host='localhost',
-            port=8086,
-            database='wbmpoll',
-            retention_period='30d',
+            enabled = False,
+            host = 'localhost',
+            port = 8086,
+            database = 'wbmpoll',
+            retention_period = '30d',
         ),
     )
 

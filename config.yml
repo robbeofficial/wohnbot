@@ -1,26 +1,28 @@
-logging:
-  level: INFO
 influx:
-  enabled: true
+  database: wbmpoll
+  enabled: false
   host: localhost
   port: 8086
-  database: wohnbot
-  retention_period: 1h
+  retention_period: 30d
+logging:
+  level: INFO
 scraping:
   enabled: false
+  max_pages: 20
   parser: html.parser
+  proxy: null
   shelve_file: listings.data
   sites:
-  - inberlinwohnen
-  - wbm
   - degewo
-  - gesobau
-  - gewobag
+  - wbm
   - howoge
   - stadtundland
+  - gewobag
+  - gesobau
+  - inberlinwohnen
   timeout: 10
-  write_sample: false  
-  max_pages: 20
+  wgproxy_endpoint: null
+  write_sample: true
 telegram:
-  enabled: false
+  enabled: true
   timeout: 10
