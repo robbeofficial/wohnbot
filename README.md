@@ -1,5 +1,5 @@
 # wohnbot
-Monitors Berlin municipal housing company websites for new rental listings. Supports fast IP address switching using [wgproxy][https://github.com/robbeofficial/wgproxy].
+Monitors Berlin municipal housing company websites for new rental listings. Supports fast IP address switching using https://github.com/robbeofficial/wgproxy.
 
 # Setup
 ```bash
