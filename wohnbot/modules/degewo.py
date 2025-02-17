@@ -2,7 +2,6 @@ from urllib.parse import urljoin
 from datetime import datetime
 import logging
 
-import requests
 from bs4 import BeautifulSoup
 
 import wohnbot
@@ -32,7 +31,7 @@ def parse(scraped):
         }
 
 
-def scrape():
+def scrape(session):
     headers = {
         'authority': 'immosuche.degewo.de',
         'accept': 'application/json, text/javascript, */*; q=0.01',
@@ -87,7 +86,7 @@ def scrape():
     for page in range(1, 20):
         params['page'] = str(page)
 
-        response = requests.get('https://immosuche.degewo.de/de/search.json',
+        response = session.get('https://immosuche.degewo.de/de/search.json',
                                 params=params, headers=headers, timeout=wohnbot.params['scraping']['timeout'])
         response_data = response.json()
 

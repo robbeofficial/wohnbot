@@ -2,7 +2,6 @@ import logging
 from datetime import datetime
 from urllib.parse import urljoin, quote_plus
 
-import requests
 from bs4 import BeautifulSoup
 
 import wohnbot
@@ -13,7 +12,7 @@ def found(response):
     return response.status_code == 200
 
 
-def scrape():
+def scrape(session):
     headers = {
         'accept': '*/*',
         'accept-language': 'en-DE,en-US;q=0.9,en;q=0.8,de-DE;q=0.7,de;q=0.6,en-GB;q=0.5,pl;q=0.4',
@@ -33,7 +32,7 @@ def scrape():
 
     data = '{"offset":0,"cat":"wohnung"}'
 
-    response = requests.post('https://d2396ha8oiavw0.cloudfront.net/sul-main/immoSearch', headers=headers, data=data)
+    response = session.post('https://d2396ha8oiavw0.cloudfront.net/sul-main/immoSearch', headers=headers, data=data)
     return response.json()
 
 

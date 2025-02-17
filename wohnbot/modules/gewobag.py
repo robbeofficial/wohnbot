@@ -1,7 +1,6 @@
 import logging
 from datetime import datetime
 
-import requests
 from bs4 import BeautifulSoup
 
 import wohnbot
@@ -13,7 +12,7 @@ def found(response):
     return response.url != 'https://www.gewobag.de/mietangebot-nicht-gefunden/'
 
 
-def scrape():
+def scrape(session):
     cookies = {
         'borlabs-cookie': '%7B%22consents%22%3A%7B%22essential%22%3A%5B%22borlabs-cookie%22%2C%22accessibility_contrast%22%2C%22accessibility_test_size%22%2C%22language_switch%22%2C%22location_agreement%22%5D%2C%22statistics%22%3A%5B%22matomo%22%5D%2C%22external-media%22%3A%5B%22gewobag-youtube%22%2C%22googlemaps%22%5D%7D%2C%22domainPath%22%3A%22www.gewobag.de%2F%22%2C%22expires%22%3A%22Fri%2C%2006%20Oct%202023%2017%3A56%3A09%20GMT%22%2C%22uid%22%3A%22g502zxlo-73pjh7xi-zuj2rk6a-ewv9i5af%22%2C%22version%22%3A%223%22%7D',
     }
@@ -92,7 +91,7 @@ def scrape():
         'sort-by': 'recent',
     }
 
-    response = requests.get('https://www.gewobag.de/fuer-mieter-und-mietinteressenten/mietangebote/',
+    response = session.get('https://www.gewobag.de/fuer-mieter-und-mietinteressenten/mietangebote/',
                             params=params, cookies=cookies, headers=headers, timeout=wohnbot.params['scraping']['timeout'])
     return response.text
 

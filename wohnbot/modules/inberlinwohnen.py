@@ -2,8 +2,8 @@ from datetime import datetime
 from urllib.parse import urljoin
 import logging
 
-import requests
 from bs4 import BeautifulSoup
+from wohnbot.exceptions import ScrapingError
 
 import wohnbot
 
@@ -13,9 +13,12 @@ def found(response):
     return response.status_code == 200
 
 
-def scrape():
-    req = requests.get('https://inberlinwohnen.de/wohnungsfinder/', timeout=wohnbot.params['scraping']['timeout'])
-    return req.text
+def scrape(session):
+    response = session.get('https://inberlinwohnen.de/wohnungsfinder/', timeout=wohnbot.params['scraping']['timeout'])
+    if response.status_code != 200:
+        raise ScrapingError(f"Failed to scrape inberlinwohnen.de, got status code {response.status_code}")
+    
+    return response.text
 
 
 def parse(html_input):

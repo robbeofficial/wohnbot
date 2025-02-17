@@ -3,7 +3,6 @@ from urllib.parse import urljoin
 import logging
 
 from bs4 import BeautifulSoup
-import requests
 
 import wohnbot
 
@@ -35,7 +34,7 @@ def parse(unpaged):
                 **props
             }
 
-def scrape():
+def scrape(session):
     cookies = {
         'CookieConsent': 'mandatory|video_google|marketing_facebook|statistics_matomo',
     }
@@ -65,7 +64,7 @@ def scrape():
             'tx_solr[page]': page,
         }
 
-        response = requests.get('https://www.gesobau.de/mieten/wohnungssuche/', params=params, cookies=cookies, headers=headers)
+        response = session.get('https://www.gesobau.de/mieten/wohnungssuche/', params=params, cookies=cookies, headers=headers)
 
         unpaged += response.text
 

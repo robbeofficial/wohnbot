@@ -2,19 +2,13 @@ from urllib.parse import urljoin
 from datetime import datetime
 import logging
 
-import requests
-
-import wohnbot
 logger = logging.getLogger(__name__)
 from wohnbot.exceptions import ScrapingError
-
 
 def found(response):
     return response.url != 'https://www.howoge.de/404-wohnungssuche.html'
 
-
-def scrape():
-
+def scrape(session):
     headers = {
         'Accept': 'application/json, text/javascript, */*; q=0.01',
         'Accept-Language': 'en-DE,en;q=0.9',
@@ -41,7 +35,7 @@ def scrape():
         'tx_howrealestate_json_list[rooms]': '',
     }
 
-    response = requests.post(
+    response = session.post(
         'https://www.howoge.de/?type=999&tx_howrealestate_json_list[action]=immoList',
         headers=headers,
         data=data,
