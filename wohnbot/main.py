@@ -9,6 +9,7 @@ from wohnbot import sample
 from wohnbot import influx
 from wohnbot import telegram
 from wohnbot.exceptions import ScrapingError
+from requests.exceptions import ReadTimeout, ProxyError
 
 logger = logging.getLogger("wohnbot")
 
@@ -52,7 +53,7 @@ def process_site(site):
                 scrape_duration_ms = int((time.time() - scrape_start) * 1000)
                 influx.add('metrics', {'request_duration': scrape_duration_ms}, {'site': site})
                 break
-            except ScrapingError as e:
+            except (ScrapingError, ReadTimeout, ProxyError) as e:
                 logger.info(f"Scraping attemt {attempt} failed with ScrapingError: {e}")
                 if wohnbot.params['scraping'].get('wgproxy_endpoint'):
                     logger.debug(f"Recommending wgproxy to change IP")

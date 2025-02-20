@@ -3,6 +3,7 @@ from datetime import datetime
 from urllib.parse import urljoin, quote_plus
 
 from bs4 import BeautifulSoup
+import requests
 
 import wohnbot
 logger = logging.getLogger(__name__)
@@ -32,7 +33,8 @@ def scrape(session):
 
     data = '{"offset":0,"cat":"wohnung"}'
 
-    response = session.post('https://d2396ha8oiavw0.cloudfront.net/sul-main/immoSearch', headers=headers, data=data)
+    # dont use session (VPN) here as site seems to occasionally block the IP
+    response = requests.post('https://d2396ha8oiavw0.cloudfront.net/sul-main/immoSearch', headers=headers, data=data)
     return response.json()
 
 
