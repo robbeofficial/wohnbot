@@ -48,6 +48,7 @@ def process_site(site):
             }
             session.proxies.update(proxies)
         for attempt in range(1,4):
+            renew_ip = False
             try:
                 scraped = module.scrape(session)
                 scrape_duration_ms = int((time.time() - scrape_start) * 1000)
@@ -56,11 +57,16 @@ def process_site(site):
             except (ScrapingError, ReadTimeout, ProxyError) as e:
                 logger.info(f"Scraping attemt {attempt} failed with ScrapingError: {e}")
                 if wohnbot.params['scraping'].get('wgproxy_endpoint'):
+                    renew_ip = True
+                else:
+                    break
+            if renew_ip:
+                try:
                     logger.debug(f"Recommending wgproxy to change IP")
                     response = requests.get(wohnbot.params['scraping']['wgproxy_endpoint'] + '/renew_ip').json()
                     logger.debug("new IP: " + response['ip'])
-                else:
-                    break
+                except Exception as e:
+                    logger.error(f"Failed to renew IP: {e}")
         if not scraped:
             raise ScrapingError(f"Failed to scrape {site} after {attempt} attempt(s)")
         if wohnbot.params['scraping']['write_sample']:
