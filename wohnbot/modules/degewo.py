@@ -18,85 +18,86 @@ def found(response):
 
 
 def parse(scraped):
-    base_url = 'https://immosuche.degewo.de/'
+    soup = BeautifulSoup(scraped, wohnbot.params['scraping']['parser'])
+    base_url = 'https://www.degewo.de/immosuche'
 
-    logger.debug("Found {} flats".format(len(scraped['immos'])))
+    items = soup.find_all('article', class_="article-list__item--immosearch")
 
-    for listing in scraped['immos']:
+    logger.debug("Found {} flats".format(len(items)))
+
+    for item in items:
+        props = {'found': str(datetime.now())}
+        lines = [line.strip(', ') for line in item.text.splitlines() if line.strip()]
+
         yield {
-            **listing,
-            'link': urljoin(base_url, listing['property_path']),
-            'text': f"{listing['headline']}",
-            'found': str(datetime.now()),
+            'link': urljoin(base_url, item.a['href']),
+            'text': ", ".join(lines),
+            **props
         }
 
 
 def scrape(session):
+    import requests
+
     headers = {
-        'authority': 'immosuche.degewo.de',
-        'accept': 'application/json, text/javascript, */*; q=0.01',
-        'accept-language': 'en-DE,en-US;q=0.9,en;q=0.8,de-DE;q=0.7,de;q=0.6,en-GB;q=0.5',
-        'cache-control': 'no-cache',
-        'pragma': 'no-cache',
-        'referer': 'https://immosuche.degewo.de/de/search?size=10&page=1&property_type_id=1&categories%5B%5D=1&lat=&lon=&area=&address%5Bstreet%5D=&address%5Bcity%5D=&address%5Bzipcode%5D=&address%5Bdistrict%5D=&address%5Braw%5D=&district=&property_number=&price_switch=true&price_radio=null&price_from=&price_to=&qm_radio=null&qm_from=&qm_to=&rooms_radio=null&rooms_from=&rooms_to=&wbs_required=&order=rent_total_without_vat_asc',
-        'sec-ch-ua': '"Chromium";v="106", "Google Chrome";v="106", "Not;A=Brand";v="99"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"Linux"',
-        'sec-fetch-dest': 'empty',
-        'sec-fetch-mode': 'cors',
-        'sec-fetch-site': 'same-origin',
-        'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36',
-        'x-requested-with': 'XMLHttpRequest',
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:135.0) Gecko/20100101 Firefox/135.0',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate, br, zstd',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Referer': 'https://www.degewo.de/',
+        'Origin': 'https://www.degewo.de',
+        'Connection': 'keep-alive',
+        # 'Cookie': 'cookie-marketing=accept; cookie-services=accept; cookie-maps=accept; cookie-immo=accept; cookie-youtube=accept; cookie-webcam=accept; degewo-cookie-consent=true; fe_typo_user=813130d9b7354d8b48eaea0720481694.b22bf4f763d065349de1828a1bc0da28b8e4b3faf6bc13ea28f13b89d79086c4; TS01eb0cb4=019c25b6b423e3d2b09af77286c82970d084e873c35b16e5964f79f3b3cb554e8c4ea2fff753c5d1f2d807037227511766efa909bb',
+        'Upgrade-Insecure-Requests': '1',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'same-origin',
+        'Sec-Fetch-User': '?1',
+        'Priority': 'u=0, i',
+        # Requests doesn't support trailers
+        # 'TE': 'trailers',
     }
 
     params = {
-        'utf8': '✓',
-        'property_type_id': '1',
-        'categories[]': '1',
-        'property_number': '',
-        'address[raw]': '',
-        'address[street]': '',
-        'address[city]': '',
-        'address[zipcode]': '',
-        'address[district]': '',
-        'district': '',
-        'price_switch': 'false',
-        'price_switch': 'on',
-        'price_from': '',
-        'price_to': '',
-        'price_from': '',
-        'price_to': '',
-        'price_radio': 'null',
-        'price_from': '',
-        'price_to': '',
-        'qm_radio': 'null',
-        'qm_from': '',
-        'qm_to': '',
-        'rooms_radio': 'null',
-        'rooms_from': '',
-        'rooms_to': '',
-        'features[]': '',
-        'wbs_required': '',
-        'order': 'rent_total_without_vat_asc',
+        'tx_openimmo_immobilie[search]': 'paginate',
+        'tx_openimmo_immobilie[page]': '1',
+        'tx_openimmo_immobilie[latitude]': '',
+        'tx_openimmo_immobilie[longitude]': '',
+        'tx_openimmo_immobilie[location]': '',
+        'tx_openimmo_immobilie[nettokaltmiete]': '',
+        'tx_openimmo_immobilie[nettokaltmiete_start]': '',
+        'tx_openimmo_immobilie[nettokaltmiete_end]': '',
+        'tx_openimmo_immobilie[warmmiete]': '',
+        'tx_openimmo_immobilie[warmmiete_start]': '',
+        'tx_openimmo_immobilie[warmmiete_end]': '',
+        'tx_openimmo_immobilie[wohnflaeche]': '',
+        'tx_openimmo_immobilie[wohnflaeche_start]': '',
+        'tx_openimmo_immobilie[wohnflaeche_end]': '',
+        'tx_openimmo_immobilie[anzahlZimmer]': '',
+        'tx_openimmo_immobilie[anzahlZimmer_start]': '',
+        'tx_openimmo_immobilie[anzahlZimmer_end]': '',
+        'tx_openimmo_immobilie[ausstattung][]': '',
+        'tx_openimmo_immobilie[ausstattung]': '',
+        'tx_openimmo_immobilie[wbsSozialwohnung]': '',
+        'tx_openimmo_immobilie[sortBy]': 'immobilie_preise_nettokaltmiete',
+        'tx_openimmo_immobilie[sortOrder]': 'asc',
+        'tx_openimmo_immobilie[regionalerZusatz]': '',
     }
 
-    immos = []
-    unpaged = None
+    unpaged = ""
 
-    for page in range(1, 20):
-        params['page'] = str(page)
+    for page in range(1,wohnbot.params['scraping']['max_pages']):
+        params['tx_openimmo_immobilie[page]'] = str(page)
 
-        response = session.get('https://immosuche.degewo.de/de/search.json',
-                                params=params, headers=headers, timeout=wohnbot.params['scraping']['timeout'])
-        response_data = response.json()
+        response = session.post('https://www.degewo.de/immosuche#openimmo-search-result', headers=headers, data=params, timeout=wohnbot.params['scraping']['timeout'])
+        
+        with open(f'response{page}.html','w') as f:
+            f.write(response.text)
 
-        if not response_data.get('immos'):
+        unpaged += response.text
+
+        if 'article-list__item--immosearch' not in response.text:
             break
 
-        if not unpaged:
-            unpaged = response_data
-
-        immos.extend(response_data['immos'])
-
-    unpaged['immos'] = immos
     return unpaged
