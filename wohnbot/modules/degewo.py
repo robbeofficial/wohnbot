@@ -31,7 +31,7 @@ def parse(scraped):
 
         yield {
             'link': urljoin(base_url, item.a['href']),
-            'text': ", ".join(lines),
+            'text': ", ".join(lines[1:]),
             **props
         }
 
