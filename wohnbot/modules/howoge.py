@@ -1,12 +1,20 @@
-from urllib.parse import urljoin
-from datetime import datetime
 import logging
+from datetime import datetime
+from urllib.parse import urljoin
 
-logger = logging.getLogger(__name__)
+import wohnbot
 from wohnbot.exceptions import ScrapingError
 
+logger = logging.getLogger(__name__)
+
+
 def found(response):
-    return response.url != 'https://www.howoge.de/404-wohnungssuche.html'
+    return (
+        response.status_code == 200
+        and not response.url.endswith('/404')
+        and response.url != 'https://www.howoge.de/404-wohnungssuche.html'
+    )
+
 
 def scrape(session):
     headers = {
@@ -39,6 +47,7 @@ def scrape(session):
         'https://www.howoge.de/?type=999&tx_howrealestate_json_list[action]=immoList',
         headers=headers,
         data=data,
+        timeout=wohnbot.params['scraping']['timeout'],
     )
     
     if 'crawler' in response.url:
@@ -50,13 +59,19 @@ def scrape(session):
 def parse(scraped):
     base_url = 'https://www.howoge.de/'
 
-    listings = scraped['immoobjects']
+    listings = scraped.get('immoobjects', [])
     logger.debug(f"Will parse {len(listings)} listings")
 
-    for listing in scraped['immoobjects']:
+    seen_links = set()
+    for listing in listings:
+        link = urljoin(base_url, listing['link'])
+        if link in seen_links:
+            continue
+        seen_links.add(link)
+
         yield {
             **listing,
-            'link': urljoin(base_url, listing['link']),
+            'link': link,
             'text': f"{listing['title']}, {listing['rooms']}-raum, {listing['area']}m², {listing['rent']}€, WBS:{listing['wbs']}",
             'found': str(datetime.now()),
         }
