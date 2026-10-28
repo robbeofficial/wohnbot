@@ -9,29 +9,39 @@ import wohnbot
 logger = logging.getLogger(__name__)
 
 def found(response):
-    # <h1 class="article__title--alert">Objekt nicht mehr verfügbar</h1>
+    if response.url.endswith('/immosuche/404'):
+        return False
     soup = BeautifulSoup(response.text, wohnbot.params['scraping']['parser'])
-    alert = soup.find('h1', class_="article__title--alert")
-    if alert and alert.text.strip() == "Objekt nicht mehr verfügbar":
+    h1 = soup.find('h1')
+    if h1 and "Objekt nicht mehr verfügbar" in h1.text:
         return False
     return True
 
 
 def parse(scraped):
     soup = BeautifulSoup(scraped, wohnbot.params['scraping']['parser'])
-    base_url = 'https://www.degewo.de/immosuche'
+    base_url = 'https://www.degewo.de'
 
-    items = soup.find_all('article', class_="article-list__item--immosearch")
+    items = soup.find_all(class_="c-teaser--apartment")
 
     logger.debug("Found {} flats".format(len(items)))
 
+    seen_links = set()
     for item in items:
+        link_elem = item.find('a', href=True)
+        if not link_elem:
+            continue
+        link = urljoin(base_url, link_elem['href'])
+        if link in seen_links:
+            continue
+        seen_links.add(link)
+
         props = {'found': str(datetime.now())}
         lines = [line.strip(', ') for line in item.text.splitlines() if line.strip()]
 
         yield {
-            'link': urljoin(base_url, item.a['href']),
-            'text': ", ".join(lines[1:]),
+            'link': link,
+            'text': ", ".join(lines),
             **props
         }
 
@@ -80,7 +90,7 @@ def scrape(session):
         'tx_openimmo_immobilie[ausstattung][]': '',
         'tx_openimmo_immobilie[ausstattung]': '',
         'tx_openimmo_immobilie[wbsSozialwohnung]': '',
-        'tx_openimmo_immobilie[sortBy]': 'immobilie_preise_nettokaltmiete',
+        'tx_openimmo_immobilie[sortBy]': 'immobilie_flaechen_wohnflaeche',
         'tx_openimmo_immobilie[sortOrder]': 'asc',
         'tx_openimmo_immobilie[regionalerZusatz]': '',
     }
@@ -97,7 +107,7 @@ def scrape(session):
 
         unpaged += response.text
 
-        if 'article-list__item--immosearch' not in response.text:
+        if 'c-teaser--apartment' not in response.text:
             break
 
     return unpaged
