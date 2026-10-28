@@ -10,29 +10,35 @@ logger = logging.getLogger(__name__)
 
 
 def found(response):
-    return response.url != 'https://www.gesobau.de/mieten/wohnungssuche/angebot-nicht-mehr-verfuegbar.html'
+    if response.status_code == 404 or 'angebot-nicht-mehr-verfuegbar' in response.url:
+        return False
+    return True
 
 
 def parse(unpaged):
     base_url = 'https://www.gesobau.de/'
 
-    pages = unpaged.split('<!DOCTYPE html>')
-    pages.pop(0)
+    soup = BeautifulSoup(unpaged, wohnbot.params['scraping']['parser'])
+    items = soup.find_all('div', class_="results-entry")
+    logger.debug(f"Found {len(items)} flats")
 
-    for page, text in enumerate(pages, 1):
-        soup = BeautifulSoup(text, wohnbot.params['scraping']['parser'])
-        items = soup.find_all('div', class_="results-entry")
-        logger.debug(f"Found {len(items)} flats on page {page}")
-        for item in items:
-            props = {'found': str(datetime.now())}
+    seen_links = set()
+    for item in items:
+        if not item.h3 or not item.h3.a or not item.h3.a.get('href'):
+            continue
+        link = urljoin(base_url, item.h3.a['href'])
+        if link in seen_links:
+            continue
+        seen_links.add(link)
 
-            lines = [line.strip(', ') for line in item.text.splitlines() if line.strip()]
+        props = {'found': str(datetime.now())}
+        lines = [line.strip(', ') for line in item.text.splitlines() if line.strip()]
 
-            yield {
-                'link': urljoin(base_url, item.h3.a['href']),
-                'text': ", ".join(lines),
-                **props
-            }
+        yield {
+            'link': link,
+            'text': ", ".join(lines),
+            **props
+        }
 
 def scrape(session):
     cookies = {
@@ -68,7 +74,11 @@ def scrape(session):
 
         unpaged += response.text
 
-        if '>&raquo;</a>' not in response.text:
+        if 'results-entry' not in response.text:
+            break
+
+        next_page = page + 1
+        if f'tx_solr%5Bpage%5D={next_page}' not in response.text and f'tx_solr[page]={next_page}' not in response.text:
             break
 
     return unpaged
