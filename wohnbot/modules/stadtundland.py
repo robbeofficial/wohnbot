@@ -1,16 +1,21 @@
+import json
 import logging
 from datetime import datetime
 from urllib.parse import urljoin, quote_plus
 
-from bs4 import BeautifulSoup
 import requests
 
 import wohnbot
+
 logger = logging.getLogger(__name__)
 
 
 def found(response):
-    return response.status_code == 200
+    if response.status_code != 200:
+        return False
+    if 'keine Details zu diesem Inserat anzeigen' in response.text:
+        return False
+    return True
 
 
 def scrape(session):
@@ -31,23 +36,51 @@ def scrape(session):
         'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
     }
 
-    data = '{"offset":0,"cat":"wohnung"}'
+    all_data = []
+    offset = 0
+    limit = 100
+    while True:
+        data = json.dumps({'offset': offset, 'limit': limit, 'cat': 'wohnung'})
 
-    # dont use session (VPN) here as site seems to occasionally block the IP
-    response = requests.post('https://d2396ha8oiavw0.cloudfront.net/sul-main/immoSearch', headers=headers, data=data)
-    return response.json()
+        # dont use session (VPN) here as site seems to occasionally block the IP
+        response = requests.post(
+            'https://d2396ha8oiavw0.cloudfront.net/sul-main/immoSearch',
+            headers=headers,
+            data=data,
+            timeout=wohnbot.params['scraping']['timeout'],
+        )
+        res_json = response.json()
+        batch = res_json.get('data', [])
+        if not batch:
+            break
+        all_data.extend(batch)
+        total_count = res_json.get('count', len(all_data))
+        offset += len(batch)
+        if offset >= total_count:
+            break
+
+    return {'data': all_data, 'count': len(all_data)}
 
 
 def parse(scraped):
-    listings = scraped['data']
+    listings = scraped.get('data', [])
     logger.debug(f"Will parse {len(listings)} listings")
     
     base_url = 'https://stadtundland.de/wohnungssuche/'
+    seen_links = set()
     for listing in listings:
+        immo_number = listing.get('details', {}).get('immoNumber')
+        if not immo_number:
+            continue
+        link = urljoin(base_url, quote_plus(immo_number))
+        if link in seen_links:
+            continue
+        seen_links.add(link)
 
         yield {
             **listing,
-            'link': urljoin(base_url, quote_plus(listing['details']['immoNumber'])),
-            'text': listing['headline']
+            'link': link,
+            'text': listing.get('headline', ''),
+            'found': str(datetime.now()),
         }
     
