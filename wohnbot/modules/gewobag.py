@@ -9,16 +9,10 @@ logger = logging.getLogger(__name__)
 
 
 def found(response):
-    return response.url != 'https://www.gewobag.de/mietangebot-nicht-gefunden/'
+    return response.status_code == 200 and response.url != 'https://www.gewobag.de/mietangebot-nicht-gefunden/'
 
 
 def scrape(session):
-    import requests
-
-    cookies = {
-        'borlabs-cookie': '%7B%22consents%22%3A%7B%22essential%22%3A%5B%22borlabs-cookie%22%2C%22accessibility_contrast%22%2C%22accessibility_test_size%22%2C%22location_agreement%22%5D%7D%2C%22domainPath%22%3A%22www.gewobag.de%2F%22%2C%22expires%22%3A%22Mon%2C%2018%20Aug%202025%2015%3A02%3A31%20GMT%22%2C%22uid%22%3A%22anonymous%22%2C%22v3%22%3Atrue%2C%22version%22%3A2%7D',
-    }
-
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -27,7 +21,6 @@ def scrape(session):
         'Referer': 'https://www.gewobag.de/fuer-mietinteressentinnen/mietangebote/',
         'DNT': '1',
         'Connection': 'keep-alive',
-        # 'Cookie': 'borlabs-cookie=%7B%22consents%22%3A%7B%22essential%22%3A%5B%22borlabs-cookie%22%2C%22accessibility_contrast%22%2C%22accessibility_test_size%22%2C%22location_agreement%22%5D%7D%2C%22domainPath%22%3A%22www.gewobag.de%2F%22%2C%22expires%22%3A%22Mon%2C%2018%20Aug%202025%2015%3A02%3A31%20GMT%22%2C%22uid%22%3A%22anonymous%22%2C%22v3%22%3Atrue%2C%22version%22%3A2%7D',
         'Upgrade-Insecure-Requests': '1',
         'Sec-Fetch-Dest': 'document',
         'Sec-Fetch-Mode': 'navigate',
@@ -47,40 +40,60 @@ def scrape(session):
         'sort-by': '',
     }
 
-    response = requests.get(
-        'https://www.gewobag.de/fuer-mietinteressentinnen/mietangebote/',
-        params=params,
-        # cookies=cookies,
-        headers=headers,
-    )
-    return response.text
+    unpaged = ""
+    for page in range(1, wohnbot.params['scraping']['max_pages']):
+        url = (
+            f'https://www.gewobag.de/fuer-mietinteressentinnen/mietangebote/page/{page}/'
+            if page > 1
+            else 'https://www.gewobag.de/fuer-mietinteressentinnen/mietangebote/'
+        )
+        response = session.get(
+            url,
+            params=params,
+            headers=headers,
+            timeout=wohnbot.params['scraping']['timeout']
+        )
+        if response.status_code != 200 or 'angebot-content' not in response.text:
+            break
+
+        unpaged += response.text
+
+        if 'next page-numbers' not in response.text:
+            break
+
+    return unpaged
 
 
 def parse(html_input):
     soup = BeautifulSoup(html_input, wohnbot.params['scraping']['parser'])
 
-    if soup.find('div', class_='empty-mietangebote'):
-        return []
-
-    item_container = soup.find('div', class_='filtered-mietangebote')
-    items = item_container.find_all('div', class_='angebot-content')
+    items = soup.find_all('div', class_='angebot-content')
     logger.debug(f"Will parse {len(items)} flats")
+
+    seen_links = set()
     for item in items:
         props = {'found': str(datetime.now())}
 
-        title = item.find('h3', class_='angebot-title').text
-        address = item.find('address').text.strip()
-        url = item.find('a', href=True, class_='read-more-link')['href']
+        title_el = item.find('h3', class_='angebot-title')
+        title = title_el.text.strip() if title_el else ''
+        addr_el = item.find('address')
+        address = addr_el.text.strip() if addr_el else ''
+        link_el = item.find('a', href=True, class_='read-more-link')
+        if not link_el:
+            continue
+        url = link_el['href']
 
-        for tr in item.find('table', class_='angebot-info').find_all('tr'):
-            key = tr.th.text
-            value = tr.td.text
-            props[key] = value
+        if url in seen_links:
+            continue
+        seen_links.add(url)
 
-        # tags = []
-        # for li in item.find('ul', class_='angebot-characteristics').find_all('li'):
-        #   tags.append(li.text)
-        # props["tags"] = tags
+        table = item.find('table', class_='angebot-info')
+        if table:
+            for tr in table.find_all('tr'):
+                if tr.th and tr.td:
+                    key = tr.th.text.strip()
+                    value = tr.td.text.strip()
+                    props[key] = value
 
         yield {
             **props,
