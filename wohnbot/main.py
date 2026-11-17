@@ -8,6 +8,7 @@ import wohnbot
 from wohnbot import sample
 from wohnbot import influx
 from wohnbot import telegram
+from wohnbot import redis_sink
 from wohnbot.exceptions import ScrapingError
 from requests.exceptions import ReadTimeout, ProxyError, SSLError
 from urllib3.exceptions import MaxRetryError
@@ -92,6 +93,8 @@ def process_site(site):
     influx.add('metrics', {'processing_time': processing_duration_ms}, {'site': site})
 
     if len(flats_new) > 0:
+        # Redis first: publish() never raises, so a Telegram error can't skip it
+        redis_sink.publish(flats_new, site)
         telegram.notify(flats_new, site)
 
 if __name__ == "__main__":

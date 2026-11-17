@@ -25,6 +25,12 @@ def get_default():
             enabled = False,
             timeout = 10,
         ),
+        redis=dict(
+            enabled = False,
+            key = 'wohnbot:listings',
+            maxlen = 1000,
+            timeout = 10,
+        ),
         influx=dict(
             enabled = False,
             host = 'localhost',
