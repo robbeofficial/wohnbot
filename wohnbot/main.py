@@ -92,10 +92,9 @@ def process_site(site):
     processing_duration_ms = int((time.time() - processing_start) * 1000)
     influx.add('metrics', {'processing_time': processing_duration_ms}, {'site': site})
 
-    if len(flats_new) > 0:
-        # Redis first: publish() never raises, so a Telegram error can't skip it
-        redis_sink.publish(flats_new, site)
+    if len(flats_new) > 0:        
         telegram.notify(flats_new, site)
+        redis_sink.publish(flats_new, site)
 
 if __name__ == "__main__":
     for site in wohnbot.params['scraping']['sites']:
